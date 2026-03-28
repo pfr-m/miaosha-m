@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>登录 - 秒杀系统</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/md5.min.js}"></script>
+
+</head>
+<body>
+<form name="loginForm" id="loginForm" method="post" style="width:350px; margin:100px auto; border:1px solid #ccc; padding:30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h2 style="text-align:center; margin-bottom: 20px">用户登录</h2>
+
+    <div style="margin-bottom: 15px">
+        手机号：<input id="mobile" name="mobile" type="text" placeholder="请输入手机号" required="true" style="width: 200px; padding: 5px;"/>
+    </div>
+
+    <div style="margin-bottom: 15px">
+        密 码：&nbsp;&nbsp;&nbsp;<input id="password" name="password" type="password" placeholder="请输入密码" required="true" style="width: 200px; padding: 5px;"/>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button type="reset" style="margin-right: 20px; padding: 5px 15px;">重置</button>
+        <button type="button" onclick="login()" style="padding: 5px 15px; cursor: pointer;">登录</button>
+    </div>
+</form>
+
+<script>
+    function login(){
+        // 加载提示，防止重复点击
+        console.log("正在尝试登录...");
+
+        // 1. 获取输入内容
+        var inputPass = $("#password").val();
+        var mobile = $("#mobile").val();
+
+        if(!mobile || !inputPass) {
+            alert("手机号和密码不能为空");
+            return;
+        }
+
+        // 2. 前端固定盐（必须与后端 MD5Utils.SALT 一致）
+        var salt = "1a2b3c4d";
+
+        // 3. 第一次 MD5 加密逻辑
+        var str = "" + salt.charAt(0) + salt.charAt(2) + inputPass + salt.charAt(5) + salt.charAt(4);
+
+        // 【核心修复】：增加兼容性检查，防止 hex_md5 未定义
+        var formPass = "";
+        try {
+            formPass = hex_md5(str);
+        } catch (e) {
+            console.error(e);
+            alert("加密插件加载失败，请按 Ctrl+F5 强制刷新页面");
+            return;
+        }
+
+        // 4. 发起异步登录请求
+        $.ajax({
+            url: "/login/do_login",
+            type: "POST",
+            data: {
+                // 这里的 key 必须对应你后端 LoginVo 类中的属性名
+                id: mobile,
+                password: formPass
+            },
+            success: function(data){
+                // 这里的 data 结构取决于你的 Result.java
+                if(data && data.code == 0){
+                    alert("登录成功！");
+                    window.location.href = "/goods/to_list";
+                } else {
+                    // 如果后端返回的是错误消息
+                    alert(data.msg || "登录失败，请检查账号密码");
+                }
+            },
+            error: function(xhr){
+                console.log("错误状态码：" + xhr.status);
+                alert("服务端响应异常，请检查后端控制台日志");
+            }
+        });
+    }
+</script>
+</body>
+</html>
