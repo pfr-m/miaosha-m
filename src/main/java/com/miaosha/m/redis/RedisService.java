@@ -56,21 +56,21 @@ public class RedisService {
         return Boolean.TRUE.equals(redisTemplate.delete(realKey));
     }
 
-    /**
-     * 内部辅助：对象转字符串 (JSON)
-     */
-    @SuppressWarnings("unchecked")
-    private <T> String beanToString(T value) {
-        if (value == null) return null;
+    // 在 RedisService.java 中修改
+// 将 private 改为 public，如果不是 static 建议也加上
+    public <T> String beanToString(T value) {
+        if(value == null) {
+            return null;
+        }
         Class<?> clazz = value.getClass();
-        if (clazz == int.class || clazz == Integer.class) {
-            return "" + value;
-        } else if (clazz == String.class) {
-            return (String) value;
-        } else if (clazz == long.class || clazz == Long.class) {
-            return "" + value;
-        } else {
-            return JSON.toJSONString(value);
+        if(clazz == int.class || clazz == Integer.class) {
+            return ""+value;
+        }else if(clazz == String.class) {
+            return (String)value;
+        }else if(clazz == long.class || clazz == Long.class) {
+            return ""+value;
+        }else {
+            return JSON.toJSONString(value); // 确保引入了 fastjson
         }
     }
 
@@ -92,4 +92,21 @@ public class RedisService {
             return JSON.parseObject(str, clazz);
         }
     }
+    /**
+     * 减少值（原子操作）：用于预减库存
+     * 对应控制器中的：redisService.decr(GoodsKey.getMiaoshaGoodsStock, "" + goodsId)
+     */
+    public Long decr(KeyPrefix prefix, String key) {
+        String realKey = prefix.getPrefix() + key;
+        return redisTemplate.opsForValue().increment(realKey, -1);
+    }
+
+    /**
+     * 增加值（原子操作）：用于回滚库存
+     */
+    public Long incr(KeyPrefix prefix, String key) {
+        String realKey = prefix.getPrefix() + key;
+        return redisTemplate.opsForValue().increment(realKey, 1);
+    }
+
 }

@@ -15,4 +15,8 @@ public class GoodsService {
     public List<GoodsVo> listGoodsVo() {
         return goodsMapper.listGoodsVo();
     }
+    public boolean reduceStock(GoodsVo goods) {
+        int ret = goodsMapper.reduceStock(goods);
+        return ret > 0;
+    }
 }

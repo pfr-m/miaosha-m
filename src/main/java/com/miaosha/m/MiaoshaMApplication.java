@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 //开启Mapper接口扫描
-@MapperScan("cn.edu.hcnu.miaosham.mapper")
+@MapperScan("com.miaosha.m.mapper")
 public class MiaoshaMApplication {
 
     public static void main(String[] args) {
